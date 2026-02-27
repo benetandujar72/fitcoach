@@ -497,10 +497,16 @@ export function MealPlanner({ loggedMeals, setLoggedMeals, profile }: { loggedMe
                 <Camera className="w-12 h-12 text-slate-500 mb-4" />
                 <p className="text-sm text-slate-400 mb-6">Sube una foto de tu plato y la IA estimará los macronutrientes.</p>
                 
-                <label className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2">
-                  {processingPhoto ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Seleccionar Foto'}
-                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={processingPhoto} />
-                </label>
+                <div className="flex gap-3 w-full">
+                  <label className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2">
+                    {processingPhoto ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Tomar Foto'}
+                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoUpload} disabled={processingPhoto} />
+                  </label>
+                  <label className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2">
+                    {processingPhoto ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Galería'}
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={processingPhoto} />
+                  </label>
+                </div>
               </div>
             )}
 

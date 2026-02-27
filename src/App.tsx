@@ -3,10 +3,11 @@ import { Dashboard } from './components/Dashboard';
 import { MealPlanner } from './components/MealPlanner';
 import { Chatbot } from './components/Chatbot';
 import { Profile } from './components/Profile';
-import { LayoutDashboard, Utensils, MessageSquare, UserCircle } from 'lucide-react';
+import { Training } from './components/Training';
+import { LayoutDashboard, Utensils, MessageSquare, UserCircle, Dumbbell } from 'lucide-react';
 import { LoggedMeal, ActivityLog, UserProfile } from './types';
 
-type Tab = 'home' | 'planner' | 'chat' | 'profile';
+type Tab = 'home' | 'planner' | 'training' | 'chat' | 'profile';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
@@ -32,6 +33,7 @@ export default function App() {
         <main className="flex-1 overflow-hidden relative">
           {activeTab === 'home' && <Dashboard loggedMeals={loggedMeals} activities={activities} setActivities={setActivities} profile={userProfile} />}
           {activeTab === 'planner' && <MealPlanner loggedMeals={loggedMeals} setLoggedMeals={setLoggedMeals} profile={userProfile} />}
+          {activeTab === 'training' && <Training setActivities={setActivities} />}
           {activeTab === 'chat' && <Chatbot />}
           {activeTab === 'profile' && <Profile profile={userProfile} setProfile={setUserProfile} />}
         </main>
@@ -49,6 +51,12 @@ export default function App() {
             label="Plan" 
             isActive={activeTab === 'planner'} 
             onClick={() => setActiveTab('planner')} 
+          />
+          <NavItem 
+            icon={Dumbbell} 
+            label="Entreno" 
+            isActive={activeTab === 'training'} 
+            onClick={() => setActiveTab('training')} 
           />
           <NavItem 
             icon={MessageSquare} 
