@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ai } from '../lib/gemini';
+import { getAI } from '../lib/gemini';
 import Markdown from 'react-markdown';
 import { Send, Bot, User } from 'lucide-react';
 
@@ -20,7 +20,7 @@ export function Chatbot() {
 
   useEffect(() => {
     if (!chatRef.current) {
-      chatRef.current = ai.chats.create({
+      chatRef.current = getAI().chats.create({
         model: 'gemini-3-flash-preview',
         config: {
           systemInstruction: 'Eres BioBot, un asistente nutricional experto en revertir la resistencia a la insulina para personas mayores de 50 años. Eres parte de la app BioComandante 50+. Tu tono es empático, profesional y directo. Das consejos prácticos, recomiendas alimentos de bajo índice glucémico y explicas conceptos médicos de forma sencilla. Nunca recomiendas dietas extremas sin supervisión médica.'

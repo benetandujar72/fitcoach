@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { MealPlanner } from './components/MealPlanner';
 import { Chatbot } from './components/Chatbot';
 import { Profile } from './components/Profile';
 import { Training } from './components/Training';
 import { Diary } from './components/Diary';
-import { LayoutDashboard, Utensils, MessageSquare, UserCircle, Dumbbell, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Utensils, MessageSquare, UserCircle, Dumbbell, BookOpen, Key } from 'lucide-react';
 import { LoggedMeal, ActivityLog, UserProfile } from './types';
 
 type Tab = 'home' | 'planner' | 'training' | 'diary' | 'chat' | 'profile';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [hasKey, setHasKey] = useState(true);
+  const [checkingKey, setCheckingKey] = useState(true);
+
   const [loggedMeals, setLoggedMeals] = useState<LoggedMeal[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -24,6 +27,60 @@ export default function App() {
     dietaryRestrictions: '',
     foodPreferences: ''
   });
+
+  useEffect(() => {
+    const checkKey = async () => {
+      try {
+        // @ts-ignore
+        if (window.aistudio && window.aistudio.hasSelectedApiKey) {
+          // @ts-ignore
+          const selected = await window.aistudio.hasSelectedApiKey();
+          setHasKey(selected);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setCheckingKey(false);
+      }
+    };
+    checkKey();
+  }, []);
+
+  const handleSelectKey = async () => {
+    try {
+      // @ts-ignore
+      await window.aistudio.openSelectKey();
+      setHasKey(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  if (checkingKey) {
+    return <div className="min-h-screen bg-black flex items-center justify-center text-emerald-400">Cargando...</div>;
+  }
+
+  if (!hasKey) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4 font-sans">
+        <div className="bg-[#16181d] p-8 rounded-3xl border border-white/10 max-w-md text-center space-y-6 shadow-2xl">
+          <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto border border-blue-500/50">
+            <Key className="w-8 h-8 text-blue-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Requiere API Key</h1>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            Para usar las funciones avanzadas de IA (visión, voz, análisis adaptativo y generación de planes), necesitas seleccionar tu clave de API de Gemini.
+          </p>
+          <button 
+            onClick={handleSelectKey} 
+            className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-xl transition-colors shadow-lg shadow-blue-500/20"
+          >
+            Seleccionar API Key
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-0 sm:p-4 font-sans selection:bg-emerald-500/30">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dumbbell, Bell, CheckCircle2, PlayCircle, Info, Loader2, RefreshCw, Calendar, Image as ImageIcon } from 'lucide-react';
 import { ActivityLog, TrainingDay, Exercise } from '../types';
-import { ai } from '../lib/gemini';
+import { getAI } from '../lib/gemini';
 import { Type } from '@google/genai';
 
 const DAYS_OF_WEEK = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -19,7 +19,7 @@ export function Training({ setActivities }: { setActivities: React.Dispatch<Reac
   const generateWeeklyPlan = async () => {
     setLoadingPlan(true);
     try {
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Genera un plan de entrenamiento de fuerza de 7 días (0=Domingo a 6=Sábado) utilizando ÚNICAMENTE bandas elásticas y peso corporal. 
         El usuario tiene más de 50 años y busca revertir la resistencia a la insulina. 
@@ -68,7 +68,7 @@ export function Training({ setActivities }: { setActivities: React.Dispatch<Reac
   const generateExerciseImage = async (dayIndex: number, exerciseIndex: number, exercise: Exercise) => {
     setGeneratingImages(prev => ({ ...prev, [exercise.id]: true }));
     try {
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: `A simple, clean, flat vector illustration of a person doing ${exercise.name} with elastic resistance bands. ${exercise.description}. Minimalist fitness app style, solid dark background.`,
       });

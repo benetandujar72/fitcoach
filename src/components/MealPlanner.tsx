@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ai } from '../lib/gemini';
+import { getAI } from '../lib/gemini';
 import { Type } from '@google/genai';
 import { Utensils, Loader2, Heart, RefreshCw, Check, Plus, Mic, X, Clock, Camera, Search, Edit3 } from 'lucide-react';
 import { LoggedMeal, UserProfile } from '../types';
@@ -56,7 +56,7 @@ export function MealPlanner({ loggedMeals, setLoggedMeals, profile }: { loggedMe
       IMPORTANTE: Excluye estrictamente cualquier alimento mencionado en las restricciones. Adapta las recetas a las preferencias indicadas (ej. si no le gusta hervido, propón a la plancha o al horno).
       Devuelve platos reales, apetitosos y fáciles de preparar.`;
 
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: prompt,
         config: {
@@ -111,7 +111,7 @@ export function MealPlanner({ loggedMeals, setLoggedMeals, profile }: { loggedMe
     if (!voiceInput.trim()) return;
     setProcessingVoice(true);
     try {
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `El usuario acaba de comer lo siguiente: "${voiceInput}". Analiza el texto y extrae los macronutrientes aproximados.`,
         config: {
@@ -185,7 +185,7 @@ export function MealPlanner({ loggedMeals, setLoggedMeals, profile }: { loggedMe
           setProcessingVoice(true);
           
           try {
-            const response = await ai.models.generateContent({
+            const response = await getAI().models.generateContent({
               model: 'gemini-3-flash-preview',
               contents: {
                 parts: [
@@ -278,7 +278,7 @@ export function MealPlanner({ loggedMeals, setLoggedMeals, profile }: { loggedMe
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64Data = (reader.result as string).split(',')[1];
-        const response = await ai.models.generateContent({
+        const response = await getAI().models.generateContent({
           model: 'gemini-3-flash-preview',
           contents: {
             parts: [

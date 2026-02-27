@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BookOpen, AlertCircle, CheckCircle2, Loader2, RefreshCw, Clock, Activity, Utensils } from 'lucide-react';
 import { LoggedMeal, ActivityLog, UserProfile } from '../types';
-import { ai } from '../lib/gemini';
+import { getAI } from '../lib/gemini';
 import { Type } from '@google/genai';
 
 interface DiaryProps {
@@ -54,7 +54,7 @@ export function Diary({ loggedMeals, activities, profile }: DiaryProps) {
       
       Devuelve un JSON.`;
 
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: prompt,
         config: {
