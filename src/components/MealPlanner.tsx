@@ -25,6 +25,8 @@ export function MealPlanner({ loggedMeals, setLoggedMeals, profile }: { loggedMe
   const [voiceInput, setVoiceInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [processingVoice, setProcessingVoice] = useState(false);
+  const mediaRecorderRef = React.useRef<MediaRecorder | null>(null);
+  const audioChunksRef = React.useRef<Blob[]>([]);
 
   // Manual State
   const [manualForm, setManualForm] = useState({
@@ -136,7 +138,8 @@ export function MealPlanner({ loggedMeals, setLoggedMeals, profile }: { loggedMe
           protein: data.protein,
           fat: data.fat,
           timestamp: new Date(),
-          type: 'custom'
+          type: 'custom',
+          transcript: voiceInput
         };
         setLoggedMeals(prev => [...prev, newLog]);
         setShowLogModal(false);
@@ -149,42 +152,100 @@ export function MealPlanner({ loggedMeals, setLoggedMeals, profile }: { loggedMe
     }
   };
 
-  const toggleListening = () => {
+  const toggleListening = async () => {
     if (isListening) {
+      // Stop recording
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
       setIsListening(false);
       return;
     }
     
-    // @ts-ignore
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Tu navegador no soporta reconocimiento de voz nativo. Por favor, usa el cuadro de texto.");
-      return;
-    }
-
     try {
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'es-ES';
-      recognition.continuous = false;
-      recognition.interimResults = false;
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
 
-      recognition.onstart = () => setIsListening(true);
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setVoiceInput(transcript);
-        setIsListening(false);
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
-      recognition.onerror = (e: any) => {
-        console.error("Speech recognition error", e);
-        setIsListening(false);
-        alert("Error al acceder al micrófono. Asegúrate de dar permisos o usa el texto.");
-      };
-      recognition.onend = () => setIsListening(false);
 
-      recognition.start();
-    } catch (e) {
-      console.error(e);
-      alert("Error al iniciar el micrófono.");
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        
+        // Convert Blob to Base64
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+          const base64Audio = (reader.result as string).split(',')[1];
+          setProcessingVoice(true);
+          
+          try {
+            const response = await ai.models.generateContent({
+              model: 'gemini-3-flash-preview',
+              contents: {
+                parts: [
+                  { text: 'Escucha este audio donde el usuario describe lo que ha comido. Transcribe exactamente lo que dice y extrae los macronutrientes aproximados. Devuelve un JSON.' },
+                  { inlineData: { data: base64Audio, mimeType: 'audio/webm' } }
+                ]
+              },
+              config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                  type: Type.OBJECT,
+                  properties: {
+                    transcript: { type: Type.STRING, description: "Transcripción exacta de lo que dijo el usuario" },
+                    name: { type: Type.STRING, description: "Nombre resumido de la comida" },
+                    carbs: { type: Type.NUMBER, description: "Gramos de carbohidratos estimados" },
+                    protein: { type: Type.NUMBER, description: "Gramos de proteína estimados" },
+                    fat: { type: Type.NUMBER, description: "Gramos de grasa estimados" }
+                  },
+                  required: ["transcript", "name", "carbs", "protein", "fat"]
+                }
+              }
+            });
+
+            if (response.text) {
+              const data = JSON.parse(response.text);
+              setVoiceInput(data.transcript); // Show what was transcribed
+              
+              const newLog: LoggedMeal = {
+                id: Math.random().toString(36).substr(2, 9),
+                name: data.name,
+                carbs: data.carbs,
+                protein: data.protein,
+                fat: data.fat,
+                timestamp: new Date(),
+                type: 'custom',
+                transcript: data.transcript
+              };
+              setLoggedMeals(prev => [...prev, newLog]);
+              setTimeout(() => {
+                setShowLogModal(false);
+                setVoiceInput('');
+              }, 2000); // Give user 2 seconds to read the transcript before closing
+            }
+          } catch (error) {
+            console.error("Error processing audio with Gemini:", error);
+            alert("Error al procesar el audio con IA.");
+          } finally {
+            setProcessingVoice(false);
+            // Stop all tracks to release microphone
+            stream.getTracks().forEach(track => track.stop());
+          }
+        };
+      };
+
+      mediaRecorder.start();
+      setIsListening(true);
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+      alert("Error al acceder al micrófono. Asegúrate de dar permisos en tu navegador.");
+      setIsListening(false);
     }
   };
 

@@ -4,10 +4,11 @@ import { MealPlanner } from './components/MealPlanner';
 import { Chatbot } from './components/Chatbot';
 import { Profile } from './components/Profile';
 import { Training } from './components/Training';
-import { LayoutDashboard, Utensils, MessageSquare, UserCircle, Dumbbell } from 'lucide-react';
+import { Diary } from './components/Diary';
+import { LayoutDashboard, Utensils, MessageSquare, UserCircle, Dumbbell, BookOpen } from 'lucide-react';
 import { LoggedMeal, ActivityLog, UserProfile } from './types';
 
-type Tab = 'home' | 'planner' | 'training' | 'chat' | 'profile';
+type Tab = 'home' | 'planner' | 'training' | 'diary' | 'chat' | 'profile';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
@@ -34,12 +35,13 @@ export default function App() {
           {activeTab === 'home' && <Dashboard loggedMeals={loggedMeals} activities={activities} setActivities={setActivities} profile={userProfile} />}
           {activeTab === 'planner' && <MealPlanner loggedMeals={loggedMeals} setLoggedMeals={setLoggedMeals} profile={userProfile} />}
           {activeTab === 'training' && <Training setActivities={setActivities} />}
+          {activeTab === 'diary' && <Diary loggedMeals={loggedMeals} activities={activities} profile={userProfile} />}
           {activeTab === 'chat' && <Chatbot />}
           {activeTab === 'profile' && <Profile profile={userProfile} setProfile={setUserProfile} />}
         </main>
 
         {/* Bottom Navigation */}
-        <nav className="absolute bottom-0 w-full bg-[#16181d]/90 backdrop-blur-md border-t border-white/10 px-6 py-4 flex justify-between items-center z-50">
+        <nav className="absolute bottom-0 w-full bg-[#16181d]/90 backdrop-blur-md border-t border-white/10 px-4 py-3 flex justify-between items-center z-50 overflow-x-auto scrollbar-hide">
           <NavItem 
             icon={LayoutDashboard} 
             label="Inicio" 
@@ -57,6 +59,12 @@ export default function App() {
             label="Entreno" 
             isActive={activeTab === 'training'} 
             onClick={() => setActiveTab('training')} 
+          />
+          <NavItem 
+            icon={BookOpen} 
+            label="Diario" 
+            isActive={activeTab === 'diary'} 
+            onClick={() => setActiveTab('diary')} 
           />
           <NavItem 
             icon={MessageSquare} 
